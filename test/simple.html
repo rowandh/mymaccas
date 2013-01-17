@@ -1,0 +1,94 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html lang="en" class="ie6"> <![endif]--> <!--[if IE 7 ]>    <html lang="en" class="ie7"> <![endif]--> <!--[if IE 8 ]>    <html lang="en" class="ie8"> <![endif]--> <!--[if IE 9 ]>    <html lang="en" class="ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+    <title></title>
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="shortcut icon" href="../favicon.ico">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <link rel="stylesheet" href="../css/style.css?v=2">
+
+    <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body>
+
+    <button id="login" name="login">Login</button><br/>
+    <button id="order" name="order">Order something</button><br/>
+    <div id="barcode"></div>
+
+    <!-- The missing protocol means that it will match the current protocol, either http or https. If running locally, we use the local jQuery. -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../js/libs/jquery-1.7.2.min.js"><\/script>')</script>
+    <script src="../js/libs/jsxcompressor.js"></script>
+    <script>
+        $(document).ready( function () {
+
+            var result;
+            var token = "";
+            var barcode, barcodeData;
+            var catalogue;
+
+            $('#order').click( function() {
+                $.ajax({
+                    type: "POST",
+                    url: "https://mymaccas.dev/api/Order/Totalize",
+                    contentType: "text/json",
+                    dataType: "json",
+                    headers: {
+                        "MarketId" : "AU",
+                        "Token" : "3e5a855556764920bbbbcdd23d89daf1"
+                    },
+                    data: '{"marketId":"AU",' +
+                            '"application":"MOT",' +
+                            '"languageName":"en-AU",' +
+                            '"storeId":"950064",' +
+                            '"userName":"test@example.com",' +
+                            '"orderView": {"StoreID":"950064","UserName":"test@example.com","Market":"AU","Language":"en-AU","NickName":"","PriceType":null,"Products":[{"ProductCode":5661,"Quantity":1,"Choices":[],"Customizations":[]}]}}'
+                }).success( function (result) {
+                            barcode = result.Data.BarCode;
+                            $('#barcode').html("<img src=data:image/png;base64," + barcode + ">");
+                        });
+            });
+
+            $('#login').click( function () {
+                $.ajax({
+                    type: "POST",
+                    url: "https://mymaccas.dev/api/Security/SignInAndAuthenticate",
+                    contentType: "text/json",
+                    dataType: "json",
+                    headers: {
+                        //"User-Agent": "Appcelerator Titanium/2.0.1.GA2 (iPhone/6.0; iPhone OS; en_AU;)",
+                        "MarketId" : "AU"
+                    },
+                    data: '{"marketId":"AU",' +
+                            '"application":"MOT",' +
+                            '"languageName":"en-AU",' +
+                            '"versionId":"1.0.9",' +
+                            '"nonce":"2013-01-09T18:54:04",' +
+                            '"hash":"ZTdlYzVkYTZlNzc2NTkwZThjYzMxOWI4OGI1YTI2MDk=",' +
+                            '"userName":"test@example.com",' +
+                            '"password":"qwerty",' +
+                            '"catalogVersion":{"Market":[{"Type":1},{"Type":2},{"Type":3},{"Type":4},{"Type":5},{"Type":6},{"Type":14},{"Type":15}]}}'
+                }).success( function (result) {
+                            token = result.Data.AccessData.Token;
+                            console.log(token);
+                            catalogue = JSON.parse(JXG.decompress(result.Data.Catalog));
+                            console.log(catalogue);
+                            //console.log(token);
+                        });
+            });
+
+
+        });
+    </script>
+</body>
+</html>
